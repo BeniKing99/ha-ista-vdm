@@ -2,7 +2,7 @@
 
 [![Quality Scale](https://img.shields.io/badge/quality-platinum-FFD700)](https://developers.home-assistant.io/docs/integration_quality_scale_index)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/BeniKing99/ista-vdm-hacs)](https://github.com/BeniKing99/ista-vdm-hacs/releases/latest)
+[![Release](https://img.shields.io/github/v/release/BeniKing99/ha-ista-vdm)](https://github.com/BeniKing99/ha-ista-vdm/releases/latest)
 
 This is a custom integration for Home Assistant that retrieves heating, hot water and cold water consumption data from the ista VDM (Verbrauchsdatenmanagement) portal.
 
@@ -44,7 +44,7 @@ Since Home Assistant 2026.11, HACS is built into Home Assistant as the **Marketp
 Ista VDM is not in the default list yet, so add it once from its link:
 
 1. Go to **Settings** → **Marketplace**
-2. Select **Add from link** and enter `https://github.com/BeniKing99/ista-vdm-hacs`
+2. Select **Add from link** and enter `https://github.com/BeniKing99/ha-ista-vdm`
    (the first time, Home Assistant asks you to connect GitHub with read-only access)
 3. Open **Ista VDM** and select **Install**
    (the first time, confirm **I understand the risks and agree**)
@@ -60,13 +60,13 @@ receiving updates.
 
 1. Install [HACS](https://hacs.xyz/) if you haven't already
 2. In HACS, open the menu (⋮) in the top right corner → **Custom repositories**
-3. Add `https://github.com/BeniKing99/ista-vdm-hacs` with the type **Integration**
+3. Add `https://github.com/BeniKing99/ha-ista-vdm` with the type **Integration**
 4. Search for "Ista VDM" and select **Download**
 5. Restart Home Assistant and continue with [Configuration](#configuration)
 
 ### Manual Installation
 
-1. Download the latest release from the [releases page](https://github.com/BeniKing99/ista-vdm-hacs/releases/latest)
+1. Download the latest release from the [releases page](https://github.com/BeniKing99/ha-ista-vdm/releases/latest)
 2. Copy the `custom_components/ista_vdm` folder to your Home Assistant `custom_components` directory
 3. Restart Home Assistant
 
@@ -334,8 +334,8 @@ To set up a development environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/BeniKing99/ista-vdm-hacs.git
-cd ista-vdm-hacs
+git clone https://github.com/BeniKing99/ha-ista-vdm.git
+cd ha-ista-vdm
 
 # Install dependencies
 pip install -r requirements.txt
@@ -414,7 +414,7 @@ This is an unofficial integration and is not affiliated with or endorsed by ista
 ## Support
 
 For support and questions:
-- [GitHub Issues](https://github.com/BeniKing99/ista-vdm-hacs/issues)
+- [GitHub Issues](https://github.com/BeniKing99/ha-ista-vdm/issues)
 - [Home Assistant Community Forum](https://community.home-assistant.io/)
 
 ---
