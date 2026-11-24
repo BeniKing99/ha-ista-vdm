@@ -4,7 +4,7 @@
   "codeowners": ["@BeniKing99"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/your-repo/ista-vdm-homeassistant",
+  "documentation": "https://github.com/BeniKing99/ista-vdm-hacs",
   "integration_type": "device",
   "iot_class": "cloud_polling",
   "requirements": ["ista-vdm-api>=1.1.0"],

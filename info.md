@@ -1,8 +1,14 @@
 # Ista VDM for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![Release](https://img.shields.io/github/v/release/BeniKing99/ista-vdm-hacs)](https://github.com/BeniKing99/ista-vdm-hacs/releases/latest)
 
 This is a custom integration for Home Assistant that retrieves heating, hot water and cold water consumption data from the ista VDM (Verbrauchsdatenmanagement) portal.
+
+## Latest Release
+
+**[v1.1.0](https://github.com/BeniKing99/ista-vdm-hacs/releases/tag/v1.1.0)**: support for multiple flats per account and a new cold water sensor.
+See all [releases](https://github.com/BeniKing99/ista-vdm-hacs/releases) for the full changelog.
 
 ## Features
 
@@ -17,15 +23,23 @@ This is a custom integration for Home Assistant that retrieves heating, hot wate
 
 ## Installation
 
+**Home Assistant 2026.11 or newer** (HACS is built in as the Marketplace):
+
+1. Go to **Settings** -> **Marketplace**
+2. Select **Add from link** and enter `https://github.com/BeniKing99/ista-vdm-hacs`
+3. Open "Ista VDM" and select **Install**. The setup flow opens right away, no restart needed
+
+**Home Assistant 2026.10 or older** (HACS):
+
 1. Ensure [HACS](https://hacs.xyz/) is installed
-2. Go to HACS -> Integrations
-3. Click ... -> Custom repositories
-4. Add: `https://github.com/BeniKing99/ista-vdm-hacs`
-5. Select Category: **Integration**
-6. Install "Ista VDM"
-7. Restart Home Assistant
+2. In HACS, open the menu (...) -> **Custom repositories**
+3. Add `https://github.com/BeniKing99/ista-vdm-hacs` with the type **Integration**
+4. Search for "Ista VDM" and select **Download**
+5. Restart Home Assistant
 
 ## Configuration
+
+After installing from the Marketplace, the setup flow opens automatically (start at step 4). Otherwise:
 
 1. Go to **Settings** -> **Devices & Services**
 2. Click **Add Integration**
