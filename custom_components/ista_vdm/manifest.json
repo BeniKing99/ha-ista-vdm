@@ -1,6 +1,10 @@
 {
   "domain": "ista_vdm",
   "name": "Ista VDM",
+  "categories": [
+    "energy.meters_monitoring",
+    "water.meters_leak_detection"
+  ],
   "codeowners": [
     "@BeniKing99"
   ],
