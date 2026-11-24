@@ -1,14 +1,18 @@
 """Test the ista VDM button platform."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ista_vdm.button import IstaVdmRefreshButton
 from custom_components.ista_vdm.const import DOMAIN
+
+from .conftest import FLAT_1
 
 
 @pytest.fixture
@@ -65,8 +69,8 @@ async def test_refresh_button_triggers_reauth_on_auth_failure(hass: HomeAssistan
     mock_entry.async_start_reauth.assert_called_once_with(hass)
 
 
-async def test_async_setup_entry(hass: HomeAssistant) -> None:
-    """Test setting up the button platform."""
+async def test_async_setup_entry(hass: HomeAssistant, mock_api) -> None:
+    """The refresh button is created once, on the device of the first flat."""
     entry = MockConfigEntry(
         domain=DOMAIN,
         data={
@@ -75,24 +79,19 @@ async def test_async_setup_entry(hass: HomeAssistant) -> None:
         },
     )
     entry.add_to_hass(hass)
-    
-    with patch(
-        "custom_components.ista_vdm.button.IstaVdmDataUpdateCoordinator",
-        autospec=True,
-    ) as mock_coordinator_class:
-        mock_coordinator = AsyncMock()
-        mock_coordinator_class.return_value = mock_coordinator
-        
-        from homeassistant.helpers.entity_registry import EntityRegistry
-        
-        # Set up the sensor platform first to create the coordinator
-        with patch(
-            "custom_components.ista_vdm.sensor.IstaVdmAPI",
-            autospec=True,
-        ):
-            await hass.config_entries.async_setup(entry.entry_id)
-            await hass.async_block_till_done()
-            
-            # Now set up the button platform
-            from custom_components.ista_vdm import async_setup_entry
-            # Button is set up as part of the main setup
+
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    entity_registry = er.async_get(hass)
+    buttons = [
+        e
+        for e in er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+        if e.domain == "button"
+    ]
+    assert len(buttons) == 1
+    assert buttons[0].unique_id == f"{entry.entry_id}_refresh"
+
+    device = dr.async_get(hass).async_get(buttons[0].device_id)
+    assert device is not None
+    assert device.identifiers == {(DOMAIN, f"{entry.entry_id}_{FLAT_1}")}

@@ -9,8 +9,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.ista_vdm.config_flow import CannotConnect, InvalidAuth
+from custom_components.ista_vdm.config_flow import CannotConnect
 from custom_components.ista_vdm.const import DOMAIN
+from ista_vdm_api import IstaVdmAuthError
 
 
 @pytest.fixture
@@ -66,7 +67,7 @@ async def test_invalid_auth(hass: HomeAssistant) -> None:
     """Test we handle invalid auth."""
     with patch(
         "custom_components.ista_vdm.config_flow.IstaVdmAPI.authenticate",
-        side_effect=InvalidAuth,
+        side_effect=IstaVdmAuthError("Invalid credentials"),
     ):
         result = await hass.config_entries.flow.async_init(
             DOMAIN,

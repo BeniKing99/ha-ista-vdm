@@ -28,6 +28,9 @@
       "hot_water_consumption": {
         "name": "Consumo de agua caliente"
       },
+      "cold_water_consumption": {
+        "name": "Consumo de agua fría"
+      },
       "flat_city": {
         "name": "Ciudad"
       },

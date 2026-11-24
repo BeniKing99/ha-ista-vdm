@@ -13,7 +13,8 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import IstaVdmConfigEntry
 from .const import DOMAIN
-from .sensor import IstaVdmDataUpdateCoordinator
+from .coordinator import IstaVdmDataUpdateCoordinator
+from .sensor import create_device_info
 
 PARALLEL_UPDATES = 0
 
@@ -27,12 +28,16 @@ async def async_setup_entry(
 ) -> None:
     """Set up ista VDM button based on a config entry."""
     coordinator: IstaVdmDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    if not coordinator.flat_ids:
+        return
     
-    device_info = DeviceInfo(
-        identifiers={(DOMAIN, entry.entry_id)},
-        name="Ista VDM",
-        manufacturer="ista",
-        model="VDM",
+    # The button refreshes the whole account; it lives on the device of the first flat
+    flat_id = coordinator.flat_ids[0]
+    device_info = create_device_info(
+        coordinator.flat_info.get(flat_id),
+        entry,
+        flat_id,
+        len(coordinator.flat_ids) > 1,
     )
     
     async_add_entities([

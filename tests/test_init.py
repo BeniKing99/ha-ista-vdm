@@ -1,14 +1,14 @@
 """Test the ista VDM integration initialization."""
 
-from unittest.mock import AsyncMock, patch
-
-import pytest
+from unittest.mock import patch
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ista_vdm.const import DOMAIN
 from ista_vdm_api import IstaVdmAuthError
+
+from .conftest import FLAT_1, build_api_mock
 
 
 async def test_setup_entry(hass: HomeAssistant) -> None:
@@ -25,14 +25,8 @@ async def test_setup_entry(hass: HomeAssistant) -> None:
     
     with patch(
         "custom_components.ista_vdm.IstaVdmAPI",
-        autospec=True,
-    ) as mock_api:
-        api_instance = AsyncMock()
-        api_instance.authenticate = AsyncMock(return_value=True)
-        api_instance.get_consumption_data = AsyncMock(return_value=[])
-        api_instance.get_flat_info = AsyncMock(return_value={})
-        mock_api.return_value = api_instance
-        
+        return_value=build_api_mock([FLAT_1]),
+    ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
         
@@ -128,14 +122,8 @@ async def test_unload_entry(hass: HomeAssistant) -> None:
     
     with patch(
         "custom_components.ista_vdm.IstaVdmAPI",
-        autospec=True,
-    ) as mock_api:
-        api_instance = AsyncMock()
-        api_instance.authenticate = AsyncMock(return_value=True)
-        api_instance.get_consumption_data = AsyncMock(return_value=[])
-        api_instance.get_flat_info = AsyncMock(return_value={})
-        mock_api.return_value = api_instance
-        
+        return_value=build_api_mock([FLAT_1]),
+    ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
         
@@ -162,14 +150,8 @@ async def test_reload_entry(hass: HomeAssistant) -> None:
     
     with patch(
         "custom_components.ista_vdm.IstaVdmAPI",
-        autospec=True,
-    ) as mock_api:
-        api_instance = AsyncMock()
-        api_instance.authenticate = AsyncMock(return_value=True)
-        api_instance.get_consumption_data = AsyncMock(return_value=[])
-        api_instance.get_flat_info = AsyncMock(return_value={})
-        mock_api.return_value = api_instance
-        
+        return_value=build_api_mock([FLAT_1]),
+    ):
         await hass.config_entries.async_setup(entry.entry_id)
         await hass.async_block_till_done()
         

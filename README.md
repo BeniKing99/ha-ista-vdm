@@ -3,7 +3,7 @@
 [![Quality Scale](https://img.shields.io/badge/quality-platinum-FFD700)](https://developers.home-assistant.io/docs/integration_quality_scale_index)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-This is a custom integration for Home Assistant that retrieves heating and hot water consumption data from the ista VDM (Verbrauchsdatenmanagement) portal.
+This is a custom integration for Home Assistant that retrieves heating, hot water and cold water consumption data from the ista VDM (Verbrauchsdatenmanagement) portal.
 
 ## About ista VDM
 
@@ -14,6 +14,8 @@ ista VDM is a consumption data management system used by property management com
 - ✅ **Automatic Data Retrieval**: Fetches consumption data once per day
 - ✅ **Current & Historical Data**: Shows latest month + full history in attributes
 - ✅ **Device Information**: Displays address, square meters, and other flat details
+- ✅ **Multiple Flats**: Every flat of your account gets its own device and sensors
+- ✅ **Cold Water**: Separate cold water sensor for flats with a cold water meter
 - ✅ **Manual Refresh Button**: Trigger immediate data update without waiting
 - ✅ **Last Updated Sensor**: See when data was last fetched
 - ✅ **Multi-Language Support**: English, German, French, Spanish
@@ -61,6 +63,17 @@ The integration is configured entirely through the Home Assistant UI:
 5. Click **Submit**
 
 The integration will test the connection and create all sensors automatically.
+
+### Multiple Flats
+
+If your ista VDM account has more than one flat, all of them are discovered
+automatically. Each flat becomes its own device (named after its address, for
+example `Ista VDM - Musterstraße 1/4`) with its own set of sensors. Entity IDs
+of additional flats are derived from the device name, e.g.
+`sensor.ista_vdm_musterstrasse_1_5_heating_consumption`.
+
+When upgrading from version 1.0.x, the existing sensors are kept (same entity
+IDs and history) and assigned to the first flat of the account.
 
 ## Updating Credentials / Re-authentication
 
@@ -111,6 +124,17 @@ total_months: 11
 - **Device Class**: Water
 - **State Class**: Total
 - **Icon**: mdi:water-boiler
+
+#### Cold Water Consumption
+- **Entity ID**: `sensor.ista_vdm_cold_water_consumption`
+- **Unit**: m³ (cubic meters)
+- **Device Class**: Water
+- **State Class**: Total
+- **Icon**: mdi:water
+- Only created for flats whose ista export contains cold water data (`Kaltwasser`)
+
+Hot water and cold water sensors have the same attributes as the heating sensor,
+with `consumption_m3` instead of `consumption_kwh` in the history.
 
 ### Flat Information Sensors (Diagnostic)
 
@@ -244,12 +268,15 @@ To download diagnostic data for troubleshooting:
 2. **No Real-time Data**: This is not a real-time meter - data is always from the previous billing period
 3. **CSV Format Dependency**: The integration depends on the CSV export format from ista VDM. If ista changes their format, the integration may break
 4. **Historical Data Only**: Home Assistant cannot backfill state history. Historical data is available in sensor attributes only
+5. **New Meters**: The cold water sensor is created when the integration starts. If cold water data appears for a flat later, reload the integration to add it
 
 ## Supported Devices
 
 This integration supports:
 - ✅ All ista VDM apartments with heating meters
 - ✅ All ista VDM apartments with hot water meters
+- ✅ All ista VDM apartments with cold water meters
+- ✅ Accounts with several flats
 - ✅ Multi-flat buildings with individual metering
 
 Not supported:
@@ -262,7 +289,7 @@ The integration follows this workflow:
 
 1. **Authentication**: Logs into the ista VDM portal using OAuth2
 2. **Data Retrieval**: Downloads the consumption CSV export
-3. **Parsing**: Extracts heating and hot water consumption data
+3. **Parsing**: Extracts heating, hot water and cold water consumption data for every flat of the account
 4. **Sensor Update**: Updates sensors with latest data
 5. **Attribute Storage**: Stores all historical data in sensor attributes
 
