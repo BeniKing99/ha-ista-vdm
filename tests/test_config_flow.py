@@ -9,9 +9,20 @@ from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
+from homeassistant.loader import async_get_integration
+
 from custom_components.ista_vdm.config_flow import CannotConnect
 from custom_components.ista_vdm.const import DOMAIN
-from ista_vdm_api import IstaVdmAuthError
+from ista_vdm_api import IstaVdmAuthError, IstaVdmConnectionError
+
+
+@pytest.fixture(autouse=True)
+def mock_setup_entry():
+    """Do not set up the entries the flows create; the flow is under test."""
+    with patch(
+        "custom_components.ista_vdm.async_setup_entry", return_value=True
+    ) as setup_entry:
+        yield setup_entry
 
 
 @pytest.fixture
@@ -109,6 +120,36 @@ async def test_cannot_connect(hass: HomeAssistant) -> None:
     assert result["errors"] == {"base": "cannot_connect"}
 
 
+async def test_portal_outage_is_cannot_connect(hass: HomeAssistant) -> None:
+    """A portal outage is reported as cannot_connect, not as a wrong password."""
+    with patch(
+        "custom_components.ista_vdm.config_flow.IstaVdmAPI.authenticate",
+        side_effect=IstaVdmConnectionError("Failed to load login page: 503"),
+    ):
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": SOURCE_USER},
+        )
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_EMAIL: "test@example.com",
+                CONF_PASSWORD: "test_password",
+            },
+        )
+
+    assert result["type"] == FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
+
+
+async def test_no_options_flow(hass: HomeAssistant) -> None:
+    """The integration has nothing to configure, so it offers no options flow."""
+    entry = MockConfigEntry(domain=DOMAIN, data={}, unique_id="test@example.com")
+    entry.add_to_hass(hass)
+    await async_get_integration(hass, DOMAIN)
+    assert entry.supports_options is False
+
+
 async def test_reauth_flow(hass: HomeAssistant, mock_api) -> None:
     """Test reauthentication flow."""
     # Create an existing entry
@@ -136,6 +177,7 @@ async def test_reauth_flow(hass: HomeAssistant, mock_api) -> None:
 
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "reauth_confirm"
+    assert result["description_placeholders"]["email"] == "test@example.com"
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],

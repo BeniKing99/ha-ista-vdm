@@ -7,12 +7,10 @@ import logging
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import IstaVdmConfigEntry
-from .const import DOMAIN
 from .coordinator import IstaVdmDataUpdateCoordinator
 from .sensor import create_device_info
 
@@ -27,7 +25,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up ista VDM button based on a config entry."""
-    coordinator: IstaVdmDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     if not coordinator.flat_ids:
         return
     
@@ -69,10 +67,7 @@ class IstaVdmRefreshButton(ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        _LOGGER.info("Manual refresh triggered for %s", self._entry.title)
-        try:
-            await self._coordinator.async_refresh_with_reauth()
-        except ConfigEntryAuthFailed:
-            _LOGGER.warning("Authentication failed during refresh, triggering re-auth")
-            self._entry.async_start_reauth(self._coordinator.hass)
-            raise
+        _LOGGER.debug("Manual refresh triggered for %s", self._entry.title)
+        # The coordinator logs in again when needed and starts the reauth flow
+        # itself if the portal rejects the stored password.
+        await self._coordinator.async_refresh()

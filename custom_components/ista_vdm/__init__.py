@@ -10,14 +10,14 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
 
-from ista_vdm_api import IstaVdmAPI, IstaVdmAuthError
+from ista_vdm_api import IstaVdmAPI
 from .const import DOMAIN, PLATFORMS, SENSOR_KEYS
 from .coordinator import IstaVdmDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
 
-type IstaVdmConfigEntry = ConfigEntry[IstaVdmAPI]
+type IstaVdmConfigEntry = ConfigEntry[IstaVdmDataUpdateCoordinator]
 
 
 def flat_device_identifier(entry: ConfigEntry, flat_id: str) -> tuple[str, str]:
@@ -62,28 +62,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: IstaVdmConfigEntry) -> b
     """Set up ista VDM from a config entry."""
     api = IstaVdmAPI(entry.data["email"], entry.data["password"])
 
-    # Test the connection during setup
-    try:
-        await api.authenticate()
-    except IstaVdmAuthError as err:
-        # If auth fails, trigger re-authentication flow
-        _LOGGER.error(
-            "Authentication failed for %s: %s. Triggering re-authentication.",
-            entry.title,
-            err
-        )
-        entry.async_start_reauth(hass)
-        return False
-    except Exception as err:
-        # For other errors, log and still try to set up
-        _LOGGER.error(
-            "Unexpected error during authentication for %s: %s",
-            entry.title,
-            err
-        )
-        entry.async_start_reauth(hass)
-        return False
-
+    # The first refresh logs in. A rejected password raises ConfigEntryAuthFailed
+    # (Home Assistant starts the reauth flow), any other error raises
+    # ConfigEntryNotReady (Home Assistant retries the setup later).
     coordinator = IstaVdmDataUpdateCoordinator(hass, api, entry)
     await coordinator.async_config_entry_first_refresh()
 
@@ -91,8 +72,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: IstaVdmConfigEntry) -> b
     if coordinator.flat_ids:
         _async_migrate_to_flat_ids(hass, entry, coordinator.flat_ids[0])
 
-    entry.runtime_data = api
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
+    entry.runtime_data = coordinator
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -101,15 +81,4 @@ async def async_setup_entry(hass: HomeAssistant, entry: IstaVdmConfigEntry) -> b
 
 async def async_unload_entry(hass: HomeAssistant, entry: IstaVdmConfigEntry) -> bool:
     """Unload a config entry."""
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
-    if unload_ok:
-        # Clean up coordinator from hass.data
-        hass.data.get(DOMAIN, {}).pop(entry.entry_id, None)
-
-    return unload_ok
-
-
-async def async_reload_entry(hass: HomeAssistant, entry: IstaVdmConfigEntry) -> None:
-    """Reload config entry."""
-    await async_unload_entry(hass, entry)
-    await async_setup_entry(hass, entry)
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

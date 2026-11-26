@@ -8,10 +8,10 @@ rules:
     comment: Updates once per day (24 hours)
   brands:
     status: done
-    comment: Icon included (icon.svg)
+    comment: Icon and logo included in brand/
   common-modules:
     status: done
-    comment: API separated into api.py
+    comment: Data fetching in coordinator.py, API client in the ista-vdm-api library
   config-flow-test-coverage:
     status: done
     comment: Full test coverage in tests/test_config_flow.py
@@ -44,13 +44,13 @@ rules:
     comment: All entities use has_entity_name = True
   runtime-data:
     status: done
-    comment: Using ConfigEntry.runtime_data with typed API
+    comment: The coordinator is stored in the typed ConfigEntry.runtime_data
   test-before-configure:
     status: done
     comment: Authentication tested in config flow
   test-before-setup:
     status: done
-    comment: API connection tested during setup
+    comment: First refresh during setup raises ConfigEntryAuthFailed or ConfigEntryNotReady
   unique-config-entry:
     status: done
     comment: Duplicate entry prevention implemented
@@ -72,8 +72,8 @@ rules:
     status: done
     comment: UpdateFailed handling implemented
   integration-owner:
-    status: todo
-    comment: Add codeowner to manifest
+    status: done
+    comment: Codeowner listed in manifest.json
   log-when-unavailable:
     status: done
     comment: Proper logging implemented
@@ -143,8 +143,8 @@ rules:
     status: todo
     comment: Icons defined in entity descriptions
   reconfiguration-flow:
-    status: done
-    comment: Re-auth flow implemented via config flow
+    status: todo
+    comment: Only a reauth flow; Home Assistant asks for the password when the login fails
   repair-issues:
     status: todo
     comment: Consider adding repair issues

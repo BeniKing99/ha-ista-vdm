@@ -8,11 +8,11 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
 
-from ista_vdm_api import IstaVdmAPI, IstaVdmAuthError
+from ista_vdm_api import IstaVdmAPI, IstaVdmAuthError, IstaVdmError
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,7 +60,7 @@ async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str,
     except IstaVdmAuthError as e:
         _LOGGER.error(f"Authentication error: {e}")
         raise InvalidAuth from e
-    except aiohttp.ClientError as e:
+    except (IstaVdmError, aiohttp.ClientError) as e:
         _LOGGER.error(f"Connection error: {e}")
         raise CannotConnect from e
     except Exception as e:
@@ -112,15 +112,11 @@ class IstaVDMConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle reauthorization confirmation."""
         errors: dict[str, str] = {}
-        
+        entry = self.hass.config_entries.async_get_entry(self.context.get("entry_id"))
+        if entry is None:
+            return self.async_abort(reason="reauth_failed")
+
         if user_input is not None:
-            # Get the existing entry
-            entry = self.hass.config_entries.async_get_entry(
-                self.context.get("entry_id")
-            )
-            if entry is None:
-                return self.async_abort(reason="reauth_failed")
-            
             # Merge existing data with new password
             new_data = {**entry.data, CONF_PASSWORD: user_input[CONF_PASSWORD]}
             
@@ -146,35 +142,7 @@ class IstaVDMConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_PASSWORD): str,
             }),
             errors=errors,
-            description_placeholders={"email": self.context.get("email", "")},
-        )
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
-        """Create the options flow."""
-        return OptionsFlowHandler(config_entry)
-
-
-class OptionsFlowHandler(config_entries.OptionsFlow):
-    """Handle options flow for ista VDM."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
-    async def async_step_init(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Manage the options."""
-        if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema({}),
+            description_placeholders={"email": entry.data[CONF_EMAIL]},
         )
 
 

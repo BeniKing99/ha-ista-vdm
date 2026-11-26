@@ -7,7 +7,7 @@ This is a custom integration for Home Assistant that retrieves heating, hot wate
 
 ## Latest Release
 
-**[v1.1.2](https://github.com/BeniKing99/ha-ista-vdm/releases/tag/v1.1.2)**: the repository is now called `ha-ista-vdm` (old links keep working).
+**[v1.1.3](https://github.com/BeniKing99/ha-ista-vdm/releases/tag/v1.1.3)**: a temporary outage of the ista portal no longer asks for your password; Home Assistant retries the connection instead.
 Since [v1.1.0](https://github.com/BeniKing99/ha-ista-vdm/releases/tag/v1.1.0): support for multiple flats per account and a new cold water sensor.
 See all [releases](https://github.com/BeniKing99/ha-ista-vdm/releases) for the full changelog.
 

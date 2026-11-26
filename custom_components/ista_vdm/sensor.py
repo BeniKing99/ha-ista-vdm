@@ -48,7 +48,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up ista VDM sensors for every flat of the account."""
-    coordinator: IstaVdmDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
     multiple_flats = len(coordinator.flat_ids) > 1
 
     entities: list[IstaVdmBaseSensor] = []

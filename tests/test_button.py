@@ -11,6 +11,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ista_vdm.button import IstaVdmRefreshButton
 from custom_components.ista_vdm.const import DOMAIN
+from ista_vdm_api import IstaVdmAuthError
 
 from .conftest import FLAT_1
 
@@ -20,7 +21,6 @@ def mock_coordinator():
     """Create a mock coordinator."""
     coordinator = MagicMock()
     coordinator.async_refresh = AsyncMock()
-    coordinator.async_refresh_with_reauth = AsyncMock()
     coordinator.hass = MagicMock()
     return coordinator
 
@@ -50,23 +50,35 @@ async def test_refresh_button(hass: HomeAssistant, mock_coordinator, mock_entry,
     
     await button.async_press()
     
-    mock_coordinator.async_refresh_with_reauth.assert_called_once()
+    mock_coordinator.async_refresh.assert_called_once()
 
 
-async def test_refresh_button_triggers_reauth_on_auth_failure(hass: HomeAssistant, mock_entry, mock_device_info) -> None:
-    """Test refresh button triggers re-auth on ConfigEntryAuthFailed."""
-    from homeassistant.exceptions import ConfigEntryAuthFailed
-    
-    coordinator = MagicMock()
-    coordinator.async_refresh_with_reauth = AsyncMock(side_effect=ConfigEntryAuthFailed("Auth failed"))
-    coordinator.hass = hass
-    
-    button = IstaVdmRefreshButton(coordinator, mock_entry, mock_device_info)
-    
-    with pytest.raises(ConfigEntryAuthFailed):
-        await button.async_press()
-    
-    mock_entry.async_start_reauth.assert_called_once_with(hass)
+async def test_refresh_button_rejected_password_starts_reauth(
+    hass: HomeAssistant, mock_api
+) -> None:
+    """Pressing the button with a rejected password starts the reauth flow."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={"email": "test@example.com", "password": "password"},
+        unique_id="test@example.com",
+    )
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    mock_api.get_consumption_data.side_effect = IstaVdmAuthError("Invalid credentials")
+    button_id = next(
+        e.entity_id
+        for e in er.async_entries_for_config_entry(er.async_get(hass), entry.entry_id)
+        if e.domain == "button"
+    )
+    await hass.services.async_call(
+        "button", "press", {"entity_id": button_id}, blocking=True
+    )
+    await hass.async_block_till_done()
+
+    flows = hass.config_entries.flow.async_progress()
+    assert [f["context"]["source"] for f in flows if f["handler"] == DOMAIN] == ["reauth"]
 
 
 async def test_async_setup_entry(hass: HomeAssistant, mock_api) -> None:

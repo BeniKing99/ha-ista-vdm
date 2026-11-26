@@ -98,13 +98,16 @@ IDs and history) and assigned to the first flat of the account.
 
 ## Updating Credentials / Re-authentication
 
-If you change your password or the integration needs to re-authenticate:
+If you change your password, there is nothing to set up by hand. When the ista
+portal rejects the stored password, Home Assistant asks for the new one:
 
-1. Go to **Settings** → **Devices & Services**
-2. Find the Ista VDM integration
-3. Click the three dots menu (⋯) → **Reconfigure**
-4. Enter your new password
-5. Click **Submit**
+1. A repair notification appears under **Settings** and the integration shows
+   **Reconfigure** in **Settings** → **Devices & Services**
+2. Open it and enter your new password
+3. Click **Submit**; the integration reloads with the new password
+
+A temporary outage of the ista portal or your internet connection does not ask
+for the password. Home Assistant retries the connection automatically.
 
 ## Sensors
 
@@ -184,7 +187,7 @@ The integration includes a manual refresh button to trigger an immediate data up
 - **Icon**: mdi:refresh
 - **Function**: Forces a data refresh from ista VDM portal
 
-**Note**: Pressing this button will re-authenticate with the current stored credentials. If your password has changed, the integration will automatically prompt for re-authentication.
+**Note**: The integration logs in again with the stored credentials when needed. If your password has changed, Home Assistant asks for the new one.
 
 ## Viewing Historical Data
 
@@ -338,32 +341,14 @@ git clone https://github.com/BeniKing99/ha-ista-vdm.git
 cd ha-ista-vdm
 
 # Install dependencies
-pip install -r requirements.txt
-pip install -r requirements.test.txt
+pip install pytest-homeassistant-custom-component ista-vdm-api
 
 # Run tests
 pytest tests/
 ```
 
-## Testing
-
-A standalone test script is included to verify authentication and data retrieval:
-
-```bash
-# Test with credentials
-python test_ista_vdm.py --email your@email.com --password yourpassword
-
-# Or use environment variables
-export ISTA_EMAIL=your@email.com
-export ISTA_PASSWORD=yourpassword
-python test_ista_vdm.py
-
-# Test CSV parsing with a local file
-python test_ista_vdm.py --csv-file VERBRAUCH-0014.csv
-
-# Save downloaded CSV for inspection
-python test_ista_vdm.py --email your@email.com --password yourpassword --save-csv output.csv
-```
+Login, the portal API and CSV parsing live in the
+[ista-vdm-api](https://pypi.org/project/ista-vdm-api/) library, which has its own tests.
 
 ## Use Cases
 
